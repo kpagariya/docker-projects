@@ -4,7 +4,7 @@ var http = require('http');
 // configure our HTTP server
 var server = http.createServer(function (request, response) {
   response.writeHead(200, {"Content-Type": "text/html"});
-  response.end("<H2>Hello Docker - Node App !! \n</H2>");
+  response.end("<H2>Hello Docker - Node App running in container!! \n</H2>");
 });
 
 // listen on localhost:8009
