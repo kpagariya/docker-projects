@@ -1,0 +1,35 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Build') {
+            steps {
+                script {
+                    def nodeVersion = '14'
+                    sh "nvm install ${nodeVersion}"
+                    sh "nvm use ${nodeVersion}"
+                    sh 'npm install'
+                }
+            }
+        }
+		stage('Start') {
+            steps {
+                sh 'npm start'
+            }
+        }
+        stage('Test') {
+            steps {
+                sh 'npm test'
+            }
+        }
+        stage('Build image & push to docker repo') {
+            steps {
+                script {
+                    def dockerImage = 'your-docker-repo/nodejs-app:latest'
+                    sh 'docker build -t ${dockerImage} .'
+                    sh 'docker push ${dockerImage}'
+                }
+            }
+        }
+    }
+}
