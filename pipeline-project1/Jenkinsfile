@@ -13,7 +13,7 @@ pipeline {
                     sh '''
                         curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
                         export NVM_DIR="${WORKSPACE}/.nvm"
-                        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+                        [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
                         nvm install ${NODE_VERSION}
                         nvm use ${NODE_VERSION}
                     '''
@@ -25,7 +25,7 @@ pipeline {
                 script {
                     sh '''
                         export NVM_DIR="${WORKSPACE}/.nvm"
-                        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+                        [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
                         nvm use ${NODE_VERSION}
                         npm install
                     '''
@@ -37,7 +37,7 @@ pipeline {
                 script {
                     sh '''
                         export NVM_DIR="${WORKSPACE}/.nvm"
-                        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+                        [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
                         nvm use ${NODE_VERSION}
                         npm test
                     '''
@@ -50,7 +50,7 @@ pipeline {
                     withCredentials([usernamePassword(credentialsId: 'docker-credentials-id', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
                         sh '''
                             export NVM_DIR="${WORKSPACE}/.nvm"
-                            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+                            [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
                             nvm use ${NODE_VERSION}
                             docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
                             docker build -t your-docker-repo/nodejs-app:latest .
