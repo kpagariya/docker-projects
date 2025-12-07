@@ -13,6 +13,7 @@ pipeline {
             steps {
                 echo ' Building Docker image...'
                 script {
+                    cd getting-started-master
                     // Build the Docker image
                     sh 'docker build -t getting-started:${BUILD_NUMBER} .'
                     sh 'docker tag getting-started:${BUILD_NUMBER} getting-started:latest'
