@@ -1,0 +1,71 @@
+pipeline {
+    agent any
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                echo ' Checking out code from repository...'
+                echo "Building from workspace: ${WORKSPACE}"
+            }
+        }
+        
+        stage('Build Docker Image') {
+            steps {
+                echo ' Building Docker image...'
+                script {
+                    dir('getting-started-master') {
+                        // Build the Docker image
+                        sh 'docker build -t getting-started:${BUILD_NUMBER} .'
+                        sh 'docker tag getting-started:${BUILD_NUMBER} getting-started:latest'
+                    }
+                }
+            }
+        }
+        
+        stage('Verify Image') {
+            steps {
+                echo ' Verifying Docker image was created...'
+                sh 'docker images | grep getting-started'
+            }
+        }
+        
+        stage('Run Tests') {
+            steps {
+                echo ' Running tests...'
+                script {
+                    // Test that the image runs successfully
+                    sh '''
+                        docker run -d --name test-container-${BUILD_NUMBER} \
+                            -p 8090:80 getting-started:${BUILD_NUMBER}
+                        sleep 5
+                        docker logs test-container-${BUILD_NUMBER}
+                    '''
+                }
+            }
+        }
+        
+        stage('Cleanup Test Container') {
+            steps {
+                echo ' Cleaning up test container...'
+                sh '''
+                    docker stop test-container-${BUILD_NUMBER} || true
+                    docker rm test-container-${BUILD_NUMBER} || true
+                '''
+            }
+        }
+    }
+    
+    post {
+        success {
+            echo ' Pipeline completed successfully!'
+            echo "Build: getting-started:${BUILD_NUMBER}"
+        }
+        failure {
+            echo ' Pipeline failed!'
+        }
+        always {
+            echo ' Cleaning up old images...'
+            sh 'docker image prune -f'
+        }
+    }
+}
