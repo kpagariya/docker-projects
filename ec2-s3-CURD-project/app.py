@@ -53,15 +53,10 @@ def index():
                     # Only show image files
                     key = obj['Key']
                     if any(key.lower().endswith(ext) for ext in ALLOWED_EXTENSIONS):
-                        # Generate presigned URL for viewing
-                        url = s3_client.generate_presigned_url(
-                            'get_object',
-                            Params={'Bucket': bucket_name, 'Key': key},
-                            ExpiresIn=3600
-                        )
+                        # Use Flask route to serve images (works with IAM roles)
                         images.append({
                             'key': key,
-                            'url': url,
+                            'url': url_for('serve_image', key=key),
                             'size': obj['Size'],
                             'last_modified': obj['LastModified'].strftime('%Y-%m-%d %H:%M:%S'),
                             'size_kb': round(obj['Size'] / 1024, 2)
@@ -140,6 +135,27 @@ def delete(key):
         flash(f'Error: {str(e)}', 'error')
     
     return redirect(url_for('index'))
+
+@app.route('/image/<path:key>')
+def serve_image(key):
+    """Serve an image from S3 (for display in browser)"""
+    try:
+        s3_client = get_s3_client()
+        if not s3_client:
+            return "S3 connection failed", 500
+        
+        bucket_name = app.config['S3_BUCKET_NAME']
+        response = s3_client.get_object(Bucket=bucket_name, Key=key)
+        
+        file_stream = BytesIO(response['Body'].read())
+        content_type = response.get('ContentType', 'image/jpeg')
+        
+        return send_file(
+            file_stream,
+            mimetype=content_type
+        )
+    except Exception as e:
+        return f"Error: {str(e)}", 404
 
 @app.route('/download/<path:key>')
 def download(key):

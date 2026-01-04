@@ -77,14 +77,14 @@ pip install -r requirements.txt
 Create a `.env` file in the project root:
 
 ```env
-AWS_ACCESS_KEY_ID=your-access-key-id
-AWS_SECRET_ACCESS_KEY=your-secret-access-key
 AWS_REGION=us-east-1
 S3_BUCKET_NAME=your-bucket-name
 SECRET_KEY=your-secret-key
 FLASK_DEBUG=True
 PORT=5000
 ```
+
+> **Note:** When running on EC2 with an IAM Role attached, you don't need AWS access keys. boto3 automatically uses the IAM role credentials.
 
 ### 5. Run the Application
 
@@ -217,34 +217,14 @@ sudo journalctl -u s3-image-manager -f
 
 ## AWS Configuration
 
-### S3 Bucket Policy
+### IAM Role Setup (Recommended for EC2)
 
-Ensure your S3 bucket has appropriate permissions:
+Using IAM Roles is the recommended and most secure way to grant S3 access to your EC2 instance. No access keys needed!
 
-```json
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "s3:PutObject",
-                "s3:GetObject",
-                "s3:DeleteObject",
-                "s3:ListBucket"
-            ],
-            "Resource": [
-                "arn:aws:s3:::your-bucket-name",
-                "arn:aws:s3:::your-bucket-name/*"
-            ]
-        }
-    ]
-}
-```
+#### Step 1: Create IAM Policy
 
-### IAM User Policy
-
-Create an IAM user with the following policy:
+1. Go to **AWS Console** → **IAM** → **Policies** → **Create policy**
+2. Select **JSON** tab and paste:
 
 ```json
 {
@@ -268,22 +248,46 @@ Create an IAM user with the following policy:
 }
 ```
 
+3. Click **Next** → Name it `S3-Image-Manager-Policy` → **Create policy**
+
+#### Step 2: Create IAM Role
+
+1. Go to **IAM** → **Roles** → **Create role**
+2. Select **AWS service** → **EC2** → **Next**
+3. Search and select `S3-Image-Manager-Policy` → **Next**
+4. Name it `EC2-S3-Image-Manager-Role` → **Create role**
+
+#### Step 3: Attach Role to EC2 Instance
+
+1. Go to **EC2** → **Instances** → Select your instance
+2. Click **Actions** → **Security** → **Modify IAM role**
+3. Select `EC2-S3-Image-Manager-Role` → **Update IAM role**
+
+✅ **Done!** Your EC2 instance now has S3 access without any access keys.
+
+### Create S3 Bucket
+
+1. Go to **AWS Console** → **S3** → **Create bucket**
+2. Enter a globally unique bucket name (e.g., `my-image-bucket-12345`)
+3. Select your AWS region
+4. Keep other settings as default → **Create bucket**
+
 ## Security Considerations
 
+- ✅ Use IAM Roles for EC2 instances (no access keys needed!)
 - Never commit `.env` files or AWS credentials
-- Use IAM roles for EC2 instances when possible
 - Enable S3 bucket versioning for data protection
 - Configure HTTPS in production (use nginx/ALB)
-- Regularly rotate AWS access keys
+- Regularly rotate AWS access keys if using them for local development
 
 ## Troubleshooting
 
 ### Common Issues
 
 **1. S3 Access Denied**
-- Verify AWS credentials in `.env`
-- Check IAM user permissions
-- Ensure bucket name is correct
+- Verify IAM Role is attached to EC2 instance
+- Check IAM policy has correct bucket name
+- Ensure S3_BUCKET_NAME in `.env` matches your bucket
 
 **2. Module Not Found**
 - Activate virtual environment
