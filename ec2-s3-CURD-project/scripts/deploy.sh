@@ -41,19 +41,9 @@ check_permissions() {
 install_dependencies() {
     log_info "Installing system dependencies..."
     
-    # Detect OS and install accordingly
-    if command -v yum &> /dev/null; then
-        # Amazon Linux / CentOS / RHEL
-        yum update -y
-        yum install -y python3 python3-pip python3-devel gcc
-    elif command -v apt-get &> /dev/null; then
-        # Ubuntu / Debian
-        apt-get update
-        apt-get install -y python3 python3-pip python3-venv python3-dev build-essential
-    else
-        log_error "Unsupported package manager"
-        exit 1
-    fi
+    # Ubuntu / Debian
+    apt-get update
+    apt-get install -y python3 python3-pip python3-venv python3-dev build-essential
 }
 
 # Create application directory
@@ -104,9 +94,7 @@ create_env_file() {
     
     if [ ! -f "$DEPLOY_DIR/.env" ]; then
         cat > "$DEPLOY_DIR/.env" << EOF
-# AWS Configuration
-AWS_ACCESS_KEY_ID=your-access-key-id
-AWS_SECRET_ACCESS_KEY=your-secret-access-key
+# AWS Configuration (using IAM Role - no access keys needed!)
 AWS_REGION=us-east-1
 S3_BUCKET_NAME=your-bucket-name
 
@@ -116,7 +104,7 @@ FLASK_DEBUG=false
 PORT=${PORT}
 EOF
         
-        log_warn "Please update $DEPLOY_DIR/.env with your AWS credentials"
+        log_warn "Please update $DEPLOY_DIR/.env with your S3 bucket name"
     else
         log_info "Environment file already exists, skipping..."
     fi
@@ -133,8 +121,8 @@ After=network.target
 
 [Service]
 Type=simple
-User=ec2-user
-Group=ec2-user
+User=ubuntu
+Group=ubuntu
 WorkingDirectory=${DEPLOY_DIR}
 Environment="PATH=${DEPLOY_DIR}/venv/bin"
 EnvironmentFile=${DEPLOY_DIR}/.env
@@ -156,7 +144,7 @@ EOF
 set_permissions() {
     log_info "Setting permissions..."
     
-    chown -R ec2-user:ec2-user "$DEPLOY_DIR"
+    chown -R ubuntu:ubuntu "$DEPLOY_DIR"
     chmod -R 755 "$DEPLOY_DIR"
     chmod 600 "$DEPLOY_DIR/.env"
 }
