@@ -5,10 +5,10 @@ pipeline {
     
     environment {
         // AWS credentials from Jenkins credentials store
-        #AWS_ACCESS_KEY_ID = credentials('aws-access-key-id')
-        #AWS_SECRET_ACCESS_KEY = credentials('aws-secret-access-key')
+        //AWS_ACCESS_KEY_ID = credentials('aws-access-key-id')
+        //AWS_SECRET_ACCESS_KEY = credentials('aws-secret-access-key')
         AWS_REGION = 'ap-south-1'
-        #S3_BUCKET_NAME = credentials('s3-bucket-name')
+        //S3_BUCKET_NAME = credentials('s3-bucket-name')
         S3_BUCKET_NAME = "kunalhvdesai25cat"
         TEST_S3_BUCKET_NAME = "test-s3-bucket-name"
         
