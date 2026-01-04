@@ -1,6 +1,6 @@
 pipeline {
     agent {
-        label 'ec2-node'  // Your EC2 node label in Jenkins
+        label 'AWS_EC2'  // Your EC2 node label in Jenkins
     }
     
     environment {
